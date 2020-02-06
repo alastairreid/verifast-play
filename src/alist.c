@@ -32,50 +32,71 @@ predicate_ctor list_invariant(struct list *l)() =
 //
 // Note that it does not say anything about l->head because that
 // is not accessible until you acquire the lock.
+//
+// Note that (unlike standard VeriFast examples), this does
+// not require "malloc_block_list(l)" so it is possible to
+// use this with stack-allocated and global lists.
 predicate list(struct list *l;) =
-    malloc_block_list(l)
-    &*& l->lock |-> ?mutex
+    l->lock |-> ?mutex
     &*& mutex(mutex, list_invariant(l))
 ;
 
 @*/
 
-struct list* list_create()
-	//@ requires true;
-	//@ ensures list(result);
+// initialize a previously allocated list object
+void alist_init(struct list* l)
+	//@ requires l->head |-> _ &*& l->lock |-> _;
+	//@ ensures list(l);
 {
-	struct list* l = malloc(sizeof(struct list));
-	if (l == 0) abort();
 	struct node *h = 0;
 	l->head = h;
 	//@ close create_mutex_ghost_arg(list_invariant(l));
 	//@ close list_invariant(l)();
 	struct mutex *m = create_mutex();
 	l->lock = m;
-	return l;
 }
 
-#if 0
-// Disposing of an object that contains its own mutex is delicate
-//
-// You should only dispose of a mutex if you are sure that there
-// are no threads blocked on that mutex - otherwise the threads
-// die (or are lost or ...)
-void alist_dispose(struct list* l)
+// Empty a list - making it ready to deallocate
+void alist_empty(struct list* l)
 	//@ requires list(l);
-	//@ ensures  true;
+	//@ ensures  l->head |-> _ &*& l->lock |-> _;
 {
-	struct mutex *m = l->lock;
-	mutex_acquire(m);
+	mutex_dispose(l->lock);
 	//@ open list_invariant(l)();
 	list_dispose(l->head);
 	l->head = 0;
+}
+
+// allocate and initialize a list object
+struct list* alist_create()
+	//@ requires true;
+	//@ ensures list(result) &*& malloc_block_list(result);
+{
+	struct list* l = malloc(sizeof(struct list));
+	if (l == 0) abort();
+	// There are two ways of writing this function - both work
+#if 1
+	alist_init(l);
+#else
+	struct node *h = 0;
+	l->head = h;
+	//@ close create_mutex_ghost_arg(list_invariant(l));
 	//@ close list_invariant(l)();
-	mutex_release(m);
-	mutex_dispose(m);
+	struct mutex *m = create_mutex();
+	l->lock = m;
+#endif
+	return l;
+}
+
+void alist_dispose(struct list* l)
+	//@ requires list(l) &*& malloc_block_list(l);
+	//@ ensures  true;
+{
+	mutex_dispose(l->lock);
+	//@ open list_invariant(l)();
+	list_dispose(l->head);
 	free(l);
 }
-#endif
 
 void alist_cons(struct list* l, int value)
 	//@ requires list(l);
@@ -113,11 +134,12 @@ void alist_tail(struct list* l)
 	mutex_release(l->lock);
 }
 
-void test_alist()
+// test code written using alist_create
+void test_alist1()
 	//@ requires true;
 	//@ ensures  true;
 {
-	struct list *l = list_create();
+	struct list *l = alist_create();
 	alist_cons(l, 3);
 	alist_cons(l, 4);
 	int x = alist_head(l);
@@ -126,10 +148,22 @@ void test_alist()
 	alist_tail(l);
 	// we don't track contents of list so we can't assert anything about x and y
 
-	// todo: we should really deallocate the list l but verifying
-	// alist_dispose is tricky
-	// alist_dispose(l);
-	//@ leak list(l);
+	alist_dispose(l);
+}
+
+// test code written using list_init
+void test_alist2()
+	//@ requires true;
+	//@ ensures  true;
+{
+	struct list l;
+	alist_init(&l);
+
+	alist_cons(&l, 3);
+	int x = alist_head(&l);
+	alist_tail(&l);
+
+	alist_empty(&l);
 }
 
 /****************************************************************
