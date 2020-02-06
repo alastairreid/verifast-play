@@ -56,15 +56,14 @@ void alist_init(struct list* l)
 	l->lock = m;
 }
 
-// Empty a list - making it ready to deallocate
-void alist_empty(struct list* l)
+// finalize a list - making it ready to deallocate
+void alist_fini(struct list* l)
 	//@ requires list(l);
 	//@ ensures  l->head |-> _ &*& l->lock |-> _;
 {
 	mutex_dispose(l->lock);
 	//@ open list_invariant(l)();
 	list_dispose(l->head);
-	l->head = 0;
 }
 
 // allocate and initialize a list object
@@ -92,9 +91,14 @@ void alist_dispose(struct list* l)
 	//@ requires list(l) &*& malloc_block_list(l);
 	//@ ensures  true;
 {
+	// There are two ways of writing this function - both work
+#if 1
+	alist_fini(l);
+#else
 	mutex_dispose(l->lock);
 	//@ open list_invariant(l)();
 	list_dispose(l->head);
+#endif
 	free(l);
 }
 
@@ -163,7 +167,7 @@ void test_alist2()
 	int x = alist_head(&l);
 	alist_tail(&l);
 
-	alist_empty(&l);
+	alist_fini(&l);
 }
 
 /****************************************************************
