@@ -1,4 +1,7 @@
-VF = ../verifast/bin/verifast
+VF = verifast/bin/verifast
 
 check::
-	$(VF) -shared src/list.c
+	$(VF) -c src/list.c
+
+check::
+	$(VF) -c src/alist.c

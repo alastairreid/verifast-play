@@ -61,6 +61,13 @@ struct node *cons(struct node *head, int value)
 	return n;
 }
 
+int head(struct node *head)
+	//@ requires lseg0(head, 0) &*& head != 0;
+	//@ ensures  lseg0(head, 0);
+{
+	return head->value;
+}
+
 struct node* tail(struct node *head)
 	//@ requires lseg0(head, 0) &*& head != 0;
 	//@ ensures  lseg0(result, 0);
@@ -83,6 +90,26 @@ void list_dispose(struct node *first)
 		free(n);
 		n = next;
 	}
+}
+
+void test_list()
+	//@ requires true;
+	//@ ensures  true;
+{
+	struct node *l = 0;
+	l = cons(l, 3);
+	l = cons(l, 4);
+	if (!l) abort(); // we don't track size of list but head/tail require non-empty list
+	int x = head(l);
+	l = tail(l);
+	if (!l) abort(); // we don't track size of list but head/tail require non-empty list
+	int y = head(l);
+	l = tail(l);
+	// we don't track contents of list so we can't assert anything about x and y
+
+	// we don't track the size of a list so we cannot show that the list does not leak
+	// without disposing of it
+	list_dispose(l);
 }
 
 /****************************************************************

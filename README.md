@@ -33,3 +33,4 @@ todo: create a Makefile to run it all in batch mode
 Current examples (all in the [src](src) directory)
 
 - list.c – singly linked list
+- alist.c - atomic linked list
