@@ -24,7 +24,9 @@ release](https://github.com/verifast/verifast/releases)
 
 ## Test
 
-todo: create a Makefile to run it all in batch mode
+All the examples can be checked with this command
+
+    make check
 
 ## Overview
 
