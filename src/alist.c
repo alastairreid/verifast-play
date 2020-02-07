@@ -103,8 +103,8 @@ void alist_dispose(struct list* l)
 }
 
 void alist_cons(struct list* l, int value)
-	//@ requires list(l);
-	//@ ensures  list(l);
+	//@ requires [?f]list(l);
+	//@ ensures  [f]list(l);
 {
 	mutex_acquire(l->lock);
 	//@ open list_invariant(l)();
@@ -114,8 +114,8 @@ void alist_cons(struct list* l, int value)
 }
 
 int alist_head(struct list* l)
-	//@ requires list(l);
-	//@ ensures  list(l);
+	//@ requires [?f]list(l);
+	//@ ensures  [f]list(l);
 {
 	mutex_acquire(l->lock);
 	//@ open list_invariant(l)();
@@ -126,8 +126,8 @@ int alist_head(struct list* l)
 }
 
 void alist_tail(struct list* l)
-	//@ requires list(l);
-	//@ ensures  list(l);
+	//@ requires [?f]list(l);
+	//@ ensures  [f]list(l);
 {
 	mutex_acquire(l->lock);
 	//@ open list_invariant(l)();
@@ -138,7 +138,11 @@ void alist_tail(struct list* l)
 	mutex_release(l->lock);
 }
 
-// test code written using alist_create
+/****************************************************************
+ * Sequential tests
+ ****************************************************************/
+
+// sequential test code written using alist_create
 void test_alist1()
 	//@ requires true;
 	//@ ensures  true;
@@ -155,7 +159,7 @@ void test_alist1()
 	alist_dispose(l);
 }
 
-// test code written using list_init
+// sequential test code written using list_init
 void test_alist2()
 	//@ requires true;
 	//@ ensures  true;
@@ -167,6 +171,69 @@ void test_alist2()
 	int x = alist_head(&l);
 	alist_tail(&l);
 
+	alist_fini(&l);
+}
+
+/****************************************************************
+ * Concurrent tests
+ ****************************************************************/
+
+/*@
+
+predicate_family_instance thread_run_pre(test_thread)(struct list *l, any info) = [1/2]list(l);
+predicate_family_instance thread_run_post(test_thread)(struct list *l, any info) = [1/2]list(l);
+
+@*/
+
+void test_thread(struct list *l) //@ : thread_run_joinable
+	//@ requires thread_run_pre(test_thread)(l, ?info);
+	//@ ensures thread_run_post(test_thread)(l, info);
+{
+	//@ open thread_run_pre(test_thread)(l, info);
+	alist_cons(l, 3);
+	//@ close thread_run_post(test_thread)(l, info);
+}
+
+struct thread *start_thread(struct list *l)
+	//@ requires [1/2]list(l);
+	//@ ensures thread(result, test_thread, l, _);
+{
+	//@ close thread_run_pre(test_thread)(l, unit);
+	return thread_start_joinable(test_thread, l);
+}
+
+void join_thread(struct thread *t)
+	//@ requires thread(t, test_thread, ?l, _);
+	//@ ensures  [1/2]list(l);
+{
+	thread_join(t);
+	//@ open thread_run_post(test_thread)(l, _);
+}
+
+// concurrent test code written using alist_create
+void test_alist3()
+	//@ requires true;
+	//@ ensures  true;
+{
+	struct list *l = alist_create();
+	struct thread *t1 = start_thread(l);
+	struct thread *t2 = start_thread(l);
+	join_thread(t1);
+	join_thread(t2);
+	alist_dispose(l);
+}
+
+// concurrent test code written using alist_init
+void test_alist4()
+	//@ requires true;
+	//@ ensures  true;
+{
+	struct list l;
+	alist_init(&l);
+	struct thread *t1 = start_thread(&l);
+	struct thread *t2 = start_thread(&l);
+	join_thread(t1);
+	join_thread(t2);
 	alist_fini(&l);
 }
 
