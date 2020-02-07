@@ -11,6 +11,11 @@ if you have not already done so.)
 I mostly explore this code using the VeriFast the IDE but I am including
 a Makefile so that I can run regression tests on them.
 
+Similar (possibly better) worked examples of OS kernel-like code:
+
+- [verifast/examples/helloproc](https://github.com/verifast/verifast/blob/master/examples/helloproc/vf_README.txt)
+  (all files in the same directory as that file)
+
 ## Setup
 
 Download and install a recent [VeriFast
