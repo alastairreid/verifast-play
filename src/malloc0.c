@@ -39,6 +39,7 @@ void slab_init(struct slab *s, char *p)
 		;
 	@*/
 	//@ ensures slab(s,_,_);
+	//@ terminates;
 {
 	s->next = 0;
 	s->heap = p;
@@ -57,6 +58,7 @@ char* slab_alloc(struct slab *s, size_t size)
 			&*& result + size < heap + HEAP_SIZE)
 		;
 	@*/
+	//@ terminates;
 {
 	if (wrap_add64(s->next, size) >= HEAP_SIZE) {
 		return 0;
@@ -80,6 +82,7 @@ char heap[HEAP_SIZE];
 void test_slab_sequential()
 	//@ requires slab_raw(&myslab) &*& chars(heap, HEAP_SIZE, _);
 	//@ ensures  true;
+	//@ terminates;
 {
 	//@ assume (&heap != 0);
 	slab_init(&myslab, heap);
