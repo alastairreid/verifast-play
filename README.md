@@ -43,3 +43,4 @@ Current examples (all in the [src](src) directory)
 - alist.c - atomic linked list
 - mylock.h and locktest.c - locks that can be stack/statically-allocated
 - wrap.h and wraptest.c - wrapping arithmetic library
+- malloc0.c - a simplistic memory allocator
