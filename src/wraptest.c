@@ -23,6 +23,7 @@
 void test_addsub64_1(uint64_t x)
 	//@ requires true;
 	//@ ensures  true;
+	//@ terminates;
 {
 	uint64_t a = wrap_add64(x, 0);
 	//@ assert(a == x);
@@ -49,6 +50,7 @@ void test_addsub64_1(uint64_t x)
 void test_addsub64_2(uint64_t x, uint64_t y)
 	//@ requires true;
 	//@ ensures  true;
+	//@ terminates;
 {
 	uint64_t a1 = wrap_add64(x, y);
 	uint64_t a2 = wrap_add64(y, x);

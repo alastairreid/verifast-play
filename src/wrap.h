@@ -21,6 +21,7 @@ uint64_t wrap_add64(uint64_t x, uint64_t y)
 			result == (x + y) - (UINT64_MAX + 1)
 		;
 	@*/
+	//@ terminates;
 {
 	uint128_t r1 = (uint128_t)x + (uint128_t)y;
 	uint64_t r = (uint64_t)(r1 <= UINT64_MAX ? r1 : (r1 - UINT64_MAX - 1u));
@@ -44,6 +45,7 @@ uint64_t wrap_sub64(uint64_t x, uint64_t y)
 			result == (x - y) + UINT64_MAX + 1
 		;
 	@*/
+	//@ terminates;
 {
 	if (x >= y) {
 		return x-y;
