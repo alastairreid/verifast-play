@@ -39,8 +39,38 @@ All the examples can be checked with this command
 
 Current examples (all in the [src](src) directory)
 
-- list.c – singly linked list
-- alist.c - atomic linked list
-- mylock.h and locktest.c - locks that can be stack/statically-allocated
-- wrap.h and wraptest.c - wrapping arithmetic library
-- malloc0.c - a simplistic memory allocator
+- list.c – singly linked list.
+
+  The standard list definition. Included so that it can be reused in other
+  examples.
+
+- alist.c - atomic linked list using a mutex.
+
+  The challenge here is that I wanted the mutex to be part of the
+  object it protects.
+
+- mylock.h and locktest.c - locks that can be stack/statically-allocated.
+
+  The challenge here is tweaking the standard mutex definition to allow
+  locks that are not allocated on the heap.
+
+- wrap.h and wraptest.c - wrapping arithmetic library.
+
+  The challenge here is that VeriFast doesn't seem to be very good at reasoning
+  about wrapping integer operations so, to help it out, I carefully implemented
+  'wrap_add64' and 'wrap_sub64' that perform wrapping addition and subtraction
+  without any intermediate overflow.
+
+- padding.c - casting between types of different sizes.
+
+  The challenge here is that the objects have to be padded with extra space
+  and, when we cast from one to the other, we have to use 'open_struct' and 'chars_join'
+  to convert the object plus its padding back to raw memory and then
+  use 'chars_split' and 'close_struct' to convert raw memory back to an object
+  plus some padding.
+
+- malloc0.c - a simplistic memory allocator.
+
+  The challenge here is slicing an object off the front of a contiguous block
+  of memory and converting it to a struct.
+
