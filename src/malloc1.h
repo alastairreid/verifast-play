@@ -11,6 +11,16 @@
 #include "stddef.h"
 #include "stdint.h"
 
+// The allocator produces aligned objects
+
+#define is_aligned(p, alignment) (((intptr_t)p) % alignment == 0)
+
+// Alas, it is not possible to use the is_aligned macro to define this predicate.
+//@ predicate aligned(void* p, size_t alignment;) = ((intptr_t)p) % alignment == 0;
+
+// Objects must have this minimum alignment
+#define MIN_ALIGNMENT 64
+
 struct slab;
 
 #if 1
@@ -46,10 +56,11 @@ void slab_init(struct slab *s, char *p, size_t chunksize, size_t objsize);
 	/*@ requires
 		slab_raw(s)
 		&*& p != 0
+		&*& is_aligned(p, MIN_ALIGNMENT)
+		&*& is_aligned((void*)objsize, MIN_ALIGNMENT)
 		&*& chars(p, chunksize, _)
 		&*& chunksize <= UINT64_MAX
-		&*& objsize >= MIN_OBJ_SIZE
-		&*& objsize <= UINT64_MAX
+		&*& MIN_OBJ_SIZE <= objsize &*& objsize <= UINT64_MAX
 		;
 	@*/
 	//@ ensures slab(s,_,_,_,objsize);

@@ -87,3 +87,6 @@ Current examples (all in the [src](src) directory)
   The challenge here is that entries on the freelist have been padded out to
   some larger size and we have to use the techniques in padding.c to
   convert between the two views.
+
+  A secondary challenge is that we want all allocations to satisfy some
+  minimum alignment requirement.

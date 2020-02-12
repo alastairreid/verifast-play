@@ -30,6 +30,7 @@ void test_slab_sequential()
 	size_t objsize = 256; // size of objects
 	//@ assume (&heap != 0);
 	//@ assume (sizeof(struct freelist) <= objsize);
+	//@ assume (is_aligned(&heap, MIN_ALIGNMENT));
 	slab_init(&myslab, heap, HEAP_SIZE, objsize);
 	void *t1 = slab_alloc(&myslab);
 	if (t1 == 0) abort();
