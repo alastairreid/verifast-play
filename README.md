@@ -69,6 +69,14 @@ Current examples (all in the [src](src) directory)
   use 'chars_split' and 'close_struct' to convert raw memory back to an object
   plus some padding.
 
+- align.c - reasoning about alignment of objects
+
+  The challenge here is saying that a pointer has to be aligned.
+  By itself, this seems to be easy but what is hard is that VeriFast does not
+  support "alignas" or "alignof" so, instead of saying that a global
+  variable has some alignment at the place where it is declared, every
+  use of that global has to add an assumption that it is aligned.
+
 - malloc0.c - a simplistic memory allocator.
 
   The challenge here is slicing an object off the front of a contiguous block
