@@ -8,6 +8,7 @@ TESTS += src/wraptest.c
 TESTS += src/padding.c
 TESTS += src/malloc0.c
 TESTS += src/malloc1.c
+TESTS += src/malloctest.c
 
 check::
 	$(VF) -c $(TESTS)

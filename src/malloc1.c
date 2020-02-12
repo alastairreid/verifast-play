@@ -10,12 +10,15 @@
 
 #include "stddef.h"
 #include "stdint.h"
-#include "stdlib.h"
 #include "wrap.h"
 
+#include "malloc1.h"
+
+#if 0
 struct freelist {
 	struct freelist *next;
 };
+#endif
 
 /*@
 
@@ -72,8 +75,6 @@ struct slab {
 /*@
 
 // was this object allocated from a given slab allocator?
-// todo: since this is just 'true', it is pretty easy to
-// spoof it!
 predicate slab_alloc_block(struct slab* s, void* p) = true;
 
 @*/
@@ -96,8 +97,8 @@ predicate slab(struct slab *s; size_t next, size_t chunksize, char* chunk, size_
     &*& s->free |-> ?free
     &*& freelist(free, size)
     &*& chunk > 0
+    &*& size >= MIN_OBJ_SIZE
     &*& size < UINT64_MAX
-    &*& size == sizeof(struct freelist)
     &*& 0 <= next &*& next <= chunksize
     &*& chunksize <= UINT64_MAX
     &*& chars(chunk+next, chunksize - next, _)
@@ -112,7 +113,7 @@ void slab_init(struct slab *s, char *p, size_t chunksize, size_t objsize)
 		&*& chunksize <= UINT64_MAX
 		&*& objsize > 0
 		&*& objsize <= UINT64_MAX
-		&*& objsize == sizeof(struct freelist)
+		&*& objsize >= MIN_OBJ_SIZE
 		;
 	@*/
 	//@ ensures slab(s,_,_,_,objsize);
@@ -173,34 +174,6 @@ void slab_free(struct slab *s, void* x)
 	f->next = s->free;
 	//@ close freelist(f, sz);
 	s->free = f;
-}
-
-/****************************************************************
- * Sequential tests
- ****************************************************************/
-
-struct slab myslab;
-
-#define HEAP_SIZE 10000
-
-char heap[HEAP_SIZE];
-
-// Sequential test code
-void test_slab_sequential()
-	//@ requires slab_raw(&myslab) &*& chars(heap, HEAP_SIZE, _);
-	//@ ensures  true;
-	//@ terminates;
-{
-	//@ assume (&heap != 0);
-	//@ assume (sizeof(struct freelist) <= UINT64_MAX); // Yes, you really need to say this :-)
-	slab_init(&myslab, heap, HEAP_SIZE, sizeof(struct freelist));
-	void *t1 = slab_alloc(&myslab);
-	if (t1 == 0) abort();
-	void *t2 = slab_alloc(&myslab);
-	if (t2 == 0) abort();
-	slab_free(&myslab, t1);
-	slab_free(&myslab, t2);
-	//@ leak slab(&myslab, _, _, _, _);
 }
 
 /****************************************************************

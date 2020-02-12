@@ -74,7 +74,7 @@ Current examples (all in the [src](src) directory)
   The challenge here is slicing an object off the front of a contiguous block
   of memory and converting it to a struct.
 
-- malloc1.c - a memory allocator that supports free
+- malloc1.c and malloctest.c - a memory allocator that supports free
 
   The challenge here is that entries on the freelist have been padded out to
   some larger size and we have to use the techniques in padding.c to
