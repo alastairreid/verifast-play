@@ -37,6 +37,8 @@ All the examples can be checked with this command
 
 [Warning: I am likely to forget to update this – you might want to [explore the source directly](src).]
 
+### Working examples
+
 Current examples (all in the [src](src) directory)
 
 - list.c – singly linked list.
@@ -90,3 +92,16 @@ Current examples (all in the [src](src) directory)
 
   A secondary challenge is that we want all allocations to satisfy some
   minimum alignment requirement.
+
+### Some failing examples.
+
+These are examples where (as far as I can tell) VeriFast is able to cope with
+some feature of the C language.
+(For these examples, I would welcome suggestions for how to change the example
+so that it is accepted by VeriFast. Especially if the change would not be
+too large.)
+
+- struct.c - using structs with a single field to define new types
+
+  The challenge here is that VeriFast does not accept passing structs by
+  value; only passing copies of structs by value.
