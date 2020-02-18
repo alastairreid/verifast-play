@@ -26,7 +26,11 @@ struct freelist {
 // (Ideally, the SMT solver would just confirm this is true - but, for some
 // reason, it does not.)
 lemma void add_preserves_alignment(uint64_t x, uint64_t y, size_t alignment);
-	requires is_aligned(x, alignment) &*& is_aligned(y, alignment) &*& alignment > 0;
+	requires
+		is_aligned(x, alignment)
+		&*& is_aligned(y, alignment)
+		&*& alignment != 0
+		&*& is_aligned((UINT64_MAX+1), alignment);
 	ensures is_aligned(x + y, alignment);
 
 @*/
