@@ -43,7 +43,6 @@ void slab_init(struct slab *s, char *p)
 {
 	s->next = 0;
 	s->heap = p;
-	//@ close slab(s,_,_);
 }
 
 char* slab_alloc(struct slab *s, size_t size)
@@ -66,7 +65,6 @@ char* slab_alloc(struct slab *s, size_t size)
 		//@ chars_split(s->heap + s->next, size);
 		char *r = (char*)wrap_add64((uint64_t)s->heap, s->next);
 		s->next = s->next + size;
-		//@ close slab(s,_,_);
 		return r;
 	}
 }
