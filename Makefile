@@ -2,6 +2,7 @@ VF = verifast/bin/verifast
 
 TESTS =
 TESTS += src/list.c
+TESTS += src/listtest.c
 TESTS += src/alist.c
 TESTS += src/locktest.c
 TESTS += src/wraptest.c

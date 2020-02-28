@@ -6,8 +6,9 @@
  ****************************************************************/
 
 // Builds on top of a simple linked list structure
-#include "list.c"
+#include "list.h"
 
+#include "stdlib.h"
 #include "threading.h"
 
 // A linked list using a lock to ensure atomic updates
@@ -23,9 +24,9 @@ struct list {
 //
 // Note that it does not mention the mutex itself because that
 // would require a cyclic reference to this invariant
-predicate_ctor list_invariant(struct list *l)() =
+predicate_ctor alist_invariant(struct list *l)() =
     l->head |-> ?head
-    &*& lseg0(head, 0)
+    &*& list(head)
 ;
 
 // A list that is currently locked.
@@ -36,9 +37,9 @@ predicate_ctor list_invariant(struct list *l)() =
 // Note that (unlike standard VeriFast examples), this does
 // not require "malloc_block_list(l)" so it is possible to
 // use this with stack-allocated and global lists.
-predicate list(struct list *l;) =
+predicate alist(struct list *l;) =
     l->lock |-> ?mutex
-    &*& mutex(mutex, list_invariant(l))
+    &*& mutex(mutex, alist_invariant(l))
 ;
 
 @*/
@@ -46,30 +47,30 @@ predicate list(struct list *l;) =
 // initialize a previously allocated list object
 void alist_init(struct list* l)
 	//@ requires l->head |-> _ &*& l->lock |-> _;
-	//@ ensures list(l);
+	//@ ensures alist(l);
 {
 	struct node *h = 0;
 	l->head = h;
-	//@ close create_mutex_ghost_arg(list_invariant(l));
-	//@ close list_invariant(l)();
+	//@ close create_mutex_ghost_arg(alist_invariant(l));
+	//@ close alist_invariant(l)();
 	struct mutex *m = create_mutex();
 	l->lock = m;
 }
 
 // finalize a list - making it ready to deallocate
 void alist_fini(struct list* l)
-	//@ requires list(l);
+	//@ requires alist(l);
 	//@ ensures  l->head |-> _ &*& l->lock |-> _;
 {
 	mutex_dispose(l->lock);
-	//@ open list_invariant(l)();
+	//@ open alist_invariant(l)();
 	list_dispose(l->head);
 }
 
 // allocate and initialize a list object
 struct list* alist_create()
 	//@ requires true;
-	//@ ensures list(result) &*& malloc_block_list(result);
+	//@ ensures alist(result) &*& malloc_block_list(result);
 {
 	struct list* l = malloc(sizeof(struct list));
 	if (l == 0) abort();
@@ -79,8 +80,8 @@ struct list* alist_create()
 #else
 	struct node *h = 0;
 	l->head = h;
-	//@ close create_mutex_ghost_arg(list_invariant(l));
-	//@ close list_invariant(l)();
+	//@ close create_mutex_ghost_arg(alist_invariant(l));
+	//@ close alist_invariant(l)();
 	struct mutex *m = create_mutex();
 	l->lock = m;
 #endif
@@ -88,7 +89,7 @@ struct list* alist_create()
 }
 
 void alist_dispose(struct list* l)
-	//@ requires list(l) &*& malloc_block_list(l);
+	//@ requires alist(l) &*& malloc_block_list(l);
 	//@ ensures  true;
 {
 	// There are two ways of writing this function - both work
@@ -96,45 +97,45 @@ void alist_dispose(struct list* l)
 	alist_fini(l);
 #else
 	mutex_dispose(l->lock);
-	//@ open list_invariant(l)();
+	//@ open alist_invariant(l)();
 	list_dispose(l->head);
 #endif
 	free(l);
 }
 
-void alist_cons(struct list* l, int value)
-	//@ requires [?f]list(l);
-	//@ ensures  [f]list(l);
+void alist_cons(int value, struct list* l)
+	//@ requires [?f]alist(l);
+	//@ ensures  [f]alist(l);
 {
 	mutex_acquire(l->lock);
-	//@ open list_invariant(l)();
-	l->head = cons(l->head, value);
-	//@ close list_invariant(l)();
+	//@ open alist_invariant(l)();
+	l->head = cons(value, l->head);
+	//@ close alist_invariant(l)();
 	mutex_release(l->lock);
 }
 
 int alist_head(struct list* l)
-	//@ requires [?f]list(l);
-	//@ ensures  [f]list(l);
+	//@ requires [?f]alist(l);
+	//@ ensures  [f]alist(l);
 {
 	mutex_acquire(l->lock);
-	//@ open list_invariant(l)();
+	//@ open alist_invariant(l)();
 	int r = l->head ? head(l->head) : -1;
-	//@ close list_invariant(l)();
+	//@ close alist_invariant(l)();
 	mutex_release(l->lock);
 	return r;
 }
 
 void alist_tail(struct list* l)
-	//@ requires [?f]list(l);
-	//@ ensures  [f]list(l);
+	//@ requires [?f]alist(l);
+	//@ ensures  [f]alist(l);
 {
 	mutex_acquire(l->lock);
-	//@ open list_invariant(l)();
+	//@ open alist_invariant(l)();
 	if (l->head) {
 		l->head = tail(l->head);
 	}
-	//@ close list_invariant(l)();
+	//@ close alist_invariant(l)();
 	mutex_release(l->lock);
 }
 
@@ -148,8 +149,8 @@ void test_alist1()
 	//@ ensures  true;
 {
 	struct list *l = alist_create();
-	alist_cons(l, 3);
-	alist_cons(l, 4);
+	alist_cons(3, l);
+	alist_cons(4, l);
 	int x = alist_head(l);
 	alist_tail(l);
 	int y = alist_head(l);
@@ -167,7 +168,7 @@ void test_alist2()
 	struct list l;
 	alist_init(&l);
 
-	alist_cons(&l, 3);
+	alist_cons(3, &l);
 	int x = alist_head(&l);
 	alist_tail(&l);
 
@@ -180,8 +181,8 @@ void test_alist2()
 
 /*@
 
-predicate_family_instance thread_run_pre(test_thread)(struct list *l, any info) = [1/2]list(l);
-predicate_family_instance thread_run_post(test_thread)(struct list *l, any info) = [1/2]list(l);
+predicate_family_instance thread_run_pre(test_thread)(struct list *l, any info) = [1/2]alist(l);
+predicate_family_instance thread_run_post(test_thread)(struct list *l, any info) = [1/2]alist(l);
 
 @*/
 
@@ -190,12 +191,12 @@ void test_thread(struct list *l) //@ : thread_run_joinable
 	//@ ensures thread_run_post(test_thread)(l, info);
 {
 	//@ open thread_run_pre(test_thread)(l, info);
-	alist_cons(l, 3);
+	alist_cons(3, l);
 	//@ close thread_run_post(test_thread)(l, info);
 }
 
 struct thread *start_thread(struct list *l)
-	//@ requires [1/2]list(l);
+	//@ requires [1/2]alist(l);
 	//@ ensures thread(result, test_thread, l, _);
 {
 	//@ close thread_run_pre(test_thread)(l, unit);
@@ -204,7 +205,7 @@ struct thread *start_thread(struct list *l)
 
 void join_thread(struct thread *t)
 	//@ requires thread(t, test_thread, ?l, _);
-	//@ ensures  [1/2]list(l);
+	//@ ensures  [1/2]alist(l);
 {
 	thread_join(t);
 	//@ open thread_run_post(test_thread)(l, _);
