@@ -14,12 +14,6 @@
 
 #include "malloc1.h"
 
-#if 0
-struct freelist {
-	struct freelist *next;
-};
-#endif
-
 /*@
 
 // We state without proof...
