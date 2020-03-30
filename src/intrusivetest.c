@@ -45,8 +45,11 @@ void test_list2()
 	singleton(&b->head);
 	//@ singletons_are_lists_too(&b->head);
 	append(&a->head, &b->head);
-	//@ open list(&a->head);
+	//@ open list(_, _);
+	//@ open list(_, _);
+	//@ open list(_, _);
 	free(a);
+	free(b);
 	return;
 }
 
