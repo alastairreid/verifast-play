@@ -32,36 +32,27 @@ predicate list(struct intrusive_list *l; list<struct intrusive_list *> cs) =
 	&*& list(n, ?cs2)
 	&*& cs == cons(l, cs2)
 ;
-
-predicate singleton(struct intrusive_list *l;) =
-	l != 0
-	&*& l->next |-> ?n
-	&*& n == 0
-;
-
-lemma void singletons_are_lists_too(struct intrusive_list *l)
-	requires singleton(l);
-	ensures list(l, cons(l, nil));
-{
-	open singleton(l);
-	close list(l, _);
-}
 @*/
+
+#define offsetof(type, member) ((size_t)&(((type *)0)->member))
 
 #define container_of(ptr, type, member) ((type *)((char *)ptr - offsetof(type, member)))
 
 void singleton(struct intrusive_list *l)
 	//@ requires l != 0 &*& l->next |-> _;
-	//@ ensures  singleton(l);
+	//@ ensures  list(l, cons(l, nil));
 {
 	l->next = NULL;
 }
 
 void append(struct intrusive_list *x, struct intrusive_list *y)
-	//@ requires singleton(x) &*& list(y, ?cs);
-	//@ ensures  list(x, cons(x, cs));
+	//@ requires list(x, cons(x, nil)) &*& list(y, cons(y, ?cs));
+	//@ ensures  list(x, cons(x, cons(y, cs)));
 {
+	//@ open list(x, _);
+	//@ open list(x->next, _);
 	x->next = y;
+	//@ close list(x, _);
 }
 
 struct intrusive_list *tail(struct intrusive_list *l)
@@ -71,6 +62,15 @@ struct intrusive_list *tail(struct intrusive_list *l)
 	//@ open list(l, _);
 	struct intrusive_list *r = l->next;
 	l->next = 0;
+	return r;
+}
+
+struct intrusive_list *next(struct intrusive_list *l)
+	//@ requires list(l, cons(l, ?cs));
+	//@ ensures  l->next |-> _ &*& list(result, cs);
+{
+	//@ open list(l, _);
+	struct intrusive_list *r = l->next;
 	return r;
 }
 
