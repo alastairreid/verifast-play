@@ -64,6 +64,20 @@ lemma struct list* list_of_head(struct intrusive_list *head, predicate(struct li
 
 @*/
 
+// But having the above as lemmas is no use - I actually need to convert the
+// pointer in concrete code, not ghost code.
+// So, let's try to do the conversion
+
+//@ predicate create_list_ghost_arg(predicate() p) = true;
+//@ predicate is_head_field2(struct intrusive_list *h, predicate() p) = true;
+
+struct intrusive_list* head_of_list2(struct list *l)
+	//@ requires l->head.next |-> ?n &*& create_list_ghost_arg(?p) &*& p();
+	//@ ensures result->next |-> n &*& is_head_field2(result, p);
+{
+	// close is_head_field2(&l->head, p);
+	return &l->head;
+}
 
 #if 0 // hopelessly broken around the use of containerof
 // Test list traversal
