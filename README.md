@@ -46,6 +46,12 @@ Current examples (all in the [src](src) directory)
   The standard list definition. Included so that it can be reused in other
   examples.
 
+- list_generic.c - generic (aka polymorphic) list.
+
+  Implementation of a list where the spine of the list contains pointers
+  to the contents of the list.
+  This is not very idiomatic C but it is helpful for exploring polymorphism.
+
 - alist.c - atomic linked list using a mutex.
 
   The challenge here is that I wanted the mutex to be part of the

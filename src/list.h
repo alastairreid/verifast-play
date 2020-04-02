@@ -33,6 +33,11 @@ struct node* tail(struct node *l);
 	//@ requires list(l) &*& l != 0;
 	//@ ensures  list(result);
 
+// combined head/tail function
+int head2(struct node **pl);
+	//@ requires *pl |-> ?l &*& list(l) &*& l != 0;
+	//@ ensures  *pl |-> ?r &*& list(r);
+
 void list_dispose(struct node *l);
 	//@ requires list(l);
 	//@ ensures true;
