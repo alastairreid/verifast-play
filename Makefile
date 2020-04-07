@@ -2,7 +2,7 @@ VF = verifast/bin/verifast
 
 TESTS =
 TESTS += src/list.c
-TESTS += src/listtest.c
+TESTS += src/list_test.c
 TESTS += src/list_generic.c
 TESTS += src/list_generic_test.c
 TESTS += src/alist.c

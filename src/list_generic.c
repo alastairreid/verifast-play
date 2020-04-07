@@ -22,7 +22,7 @@ struct node *cons(void* x, struct node *xs)
 	return n;
 }
 
-void* head(struct node **pl)
+void* pop(struct node **pl)
 	//@ requires *pl |-> ?l &*& list(l, ?d) &*& l != 0;
 	//@ ensures  *pl |-> ?r &*& list(r, d) &*& Ownership(d)(result);
 {

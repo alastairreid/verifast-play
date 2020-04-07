@@ -14,7 +14,7 @@ struct node *cons(int x, struct node *xs)
 {
 	struct node *n = malloc(sizeof(struct node));
 	if (n == 0) { abort(); }
-	n->value = x;
+	n->data = x;
 	n->next = xs;
 	return n;
 }
@@ -23,7 +23,7 @@ int head(struct node *l)
 	//@ requires list(l) &*& l != 0;
 	//@ ensures  list(l);
 {
-	return l->value;
+	return l->data;
 }
 
 struct node* tail(struct node *l)
@@ -36,15 +36,15 @@ struct node* tail(struct node *l)
 }
 
 // combined head/tail function
-int head2(struct node **pl)
+int pop(struct node **pl)
 	//@ requires *pl |-> ?l &*& list(l) &*& l != 0;
 	//@ ensures  *pl |-> ?r &*& list(r);
 {
-	int value = (*pl)->value;
+	int data = (*pl)->data;
 	struct node* r = (*pl)->next;
 	free(*pl);
 	*pl = r;
-	return value;
+	return data;
 }
 
 

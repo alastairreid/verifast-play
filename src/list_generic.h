@@ -34,7 +34,7 @@ struct node *cons(void* x, struct node *xs);
 	//@ ensures  list(result, d);
 
 // return head of list and remove it from original list
-void* head(struct node **pl);
+void* pop(struct node **pl);
 	//@ requires *pl |-> ?l &*& list(l, ?d) &*& l != 0;
 	//@ ensures  *pl |-> ?r &*& list(r, d) &*& Ownership(d)(result);
 

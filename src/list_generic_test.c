@@ -46,9 +46,9 @@ void test_list()
 	l = cons(mkT(3), l);
 	l = cons(mkT(4), l);
 	if (!l) abort(); // we don't track size of list but head/tail require non-empty list
-	struct T* x = head(&l);
+	struct T* x = pop(&l);
 	if (!l) abort(); // we don't track size of list but head/tail require non-empty list
-	struct T* y = head(&l);
+	struct T* y = pop(&l);
 
 	// we don't track contents of list but we know that T(_) must hold for all elements
 	//@ open Ownership(freeT)(x);

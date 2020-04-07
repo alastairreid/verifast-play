@@ -6,7 +6,7 @@
  ****************************************************************/
 
 struct node {
-    int value;
+    int data;
     struct node *next;
 };
 
@@ -15,8 +15,8 @@ predicate list(struct node *l;) =
     l == 0
     ? true
     : malloc_block_node(l)
-      &*& l->value |-> _
-      &*& l->next  |-> ?n
+      &*& l->data |-> _
+      &*& l->next |-> ?n
       &*& list(n)
 ;
 @*/
@@ -34,7 +34,7 @@ struct node* tail(struct node *l);
 	//@ ensures  list(result);
 
 // combined head/tail function
-int head2(struct node **pl);
+int pop(struct node **pl);
 	//@ requires *pl |-> ?l &*& list(l) &*& l != 0;
 	//@ ensures  *pl |-> ?r &*& list(r);
 
