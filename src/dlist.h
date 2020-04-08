@@ -11,41 +11,42 @@ struct node {
     struct node *prev;
 };
 
+// Circular list starting with node i, ending with node k
 /*@
-predicate dlist(struct node *l;) =
-    l == 0
+predicate dlist(struct node *i, struct node *k;) =
+    (i == 0 && k == 0)
     ? true
-    : malloc_block_node(l)
-      &*& l->data |-> _
-      &*& l->next |-> ?n
-      &*& l->prev |-> ?p
-      &*& dlist(n)
+    : malloc_block_node(i)
+      &*& i->data |-> _
+      &*& i->next |-> ?j
+      &*& i->prev |-> k
+      &*& dlist(j, i)
 ;
 @*/
 
 struct node *insert_after(int x, struct node *xs);
-	//@ requires dlist(xs);
-	//@ ensures  dlist(result);
+	//@ requires dlist(xs, ?p);
+	//@ ensures  dlist(result, p);
 
 struct node *insert_before(int x, struct node *xs);
-	//@ requires dlist(xs);
-	//@ ensures  dlist(result);
+	//@ requires dlist(?p, xs);
+	//@ ensures  dlist(p, result);
 
 int head(struct node *l);
-	//@ requires dlist(l) &*& l != 0;
-	//@ ensures  dlist(l);
+	//@ requires dlist(l, ?p) &*& l != 0;
+	//@ ensures  dlist(l, p);
 
 struct node* remove(struct node *l);
-	//@ requires dlist(l) &*& l != 0;
-	//@ ensures  dlist(result);
+	//@ requires dlist(l, ?p) &*& l != 0;
+	//@ ensures  dlist(result, p);
 
 // combined head/tail function
 int pop(struct node **pl);
-	//@ requires *pl |-> ?l &*& dlist(l) &*& l != 0;
-	//@ ensures  *pl |-> ?r &*& dlist(r);
+	//@ requires *pl |-> ?l &*& dlist(l, ?p) &*& l != 0;
+	//@ ensures  *pl |-> ?r &*& dlist(r, p);
 
 void list_dispose(struct node *l);
-	//@ requires dlist(l);
+	//@ requires dlist(l, _);
 	//@ ensures true;
 
 /****************************************************************
