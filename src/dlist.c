@@ -9,55 +9,74 @@
 #include "dlist.h"
 
 struct node *insert_after(int x, struct node *xs)
-	//@ requires dlist(xs, _);
-	//@ ensures dlist(result, _);
+	//@ requires clist(xs);
+	//@ ensures clist(result);
 {
-	//@ open dlist(xs, _);
-	struct node *n = malloc(sizeof(struct node));
-	if (n == 0) { abort(); }
-	n->data = x;
+	struct node *i = malloc(sizeof(struct node));
+	if (i == 0) { abort(); }
+	i->data = x;
+
+	//@ open clist(xs);
 	if (xs) {
-		n->next = xs->next;
-		n->prev = xs;
-		if (xs->next) xs->next->prev = n;
-		xs->next = n;
+		struct node *n = xs->next;
+		//@ struct node *p = xs->prev;
+		//@ open dlist(n,xs,xs,p);
+		i->next = n;
+		i->prev = xs;
+		xs->next = i;
+		n->prev = i;
+		//@ close dlist(n,i,xs,xs->prev);
+		//@ close dlist(i,xs,i,xs);
+		//@ close dlist(xs,n==xs ? i : p,i,xs);
+		//@ join_dlist(n,i,xs,n==xs ? i : p,i,xs);
 	} else {
-		n->next = n;
-		n->prev = n;
+		i->next = i;
+		i->prev = i;
+		//@ close dlist(i,i,i,i);
 	}
-	return n;
-	//@ close dlist(n, _);
+	return i;
+	//@ close clist(i);
 }
 
 struct node *insert_before(int x, struct node *xs)
-	//@ requires dlist(?p, xs);
-	//@ ensures dlist(p, result);
+	//@ requires clist(xs);
+	//@ ensures clist(result);
 {
-	struct node *n = malloc(sizeof(struct node));
-	if (n == 0) { abort(); }
-	n->data = x;
+	struct node *i = malloc(sizeof(struct node));
+	if (i == 0) { abort(); }
+	i->data = x;
 	if (xs) {
-		n->next = xs;
-		n->prev = xs->prev;
-		if (xs->prev) xs->prev->next = n;
-		xs->prev = n;
+		//@ open clist(xs);
+		//@ struct node *n = xs->next;
+		struct node *p = xs->prev;
+		xs->prev = i;
+		//@ close dlist(xs,i,xs,p);
+		p->next = i;
+		//@ open dlist(n,xs,xs,p);
+		i->next = xs;
+		i->prev = p;
+		//@ close dlist(i,n,i,n);
+		//@ close dlist(n, n==xs?i:xs, i, n==xs?xs:p);
+		//@ close clist(i);
 	} else {
-		n->next = n;
-		n->prev = n;
+		i->next = i;
+		i->prev = i;
+		//@ close dlist(i,i,i,i);
+		//@ close clist(i);
 	}
-	return n;
+	return i;
 }
 
 int head(struct node *l)
-	//@ requires dlist(l, ?p) &*& l != 0;
-	//@ ensures  dlist(l, p);
+	//@ requires clist(l) &*& l != 0;
+	//@ ensures  clist(l);
 {
 	return l->data;
 }
 
 struct node* remove(struct node *l)
-	//@ requires dlist(l, ?p) &*& l != 0;
-	//@ ensures  dlist(result, p);
+	//@ requires clist(l) &*& l != 0;
+	//@ ensures  clist(result);
 {
 	struct node* n = l->next;
 	struct node* p = l->prev;
@@ -69,8 +88,8 @@ struct node* remove(struct node *l)
 
 // combined head/tail function
 int pop(struct node **pl)
-	//@ requires *pl |-> ?l &*& dlist(l, ?p) &*& l != 0;
-	//@ ensures  *pl |-> ?r &*& dlist(r, p);
+	//@ requires *pl |-> ?l &*& clist(l) &*& l != 0;
+	//@ ensures  *pl |-> ?r &*& clist(r);
 {
 	int data = (*pl)->data;
 	struct node* n = (*pl)->next;
@@ -83,12 +102,12 @@ int pop(struct node **pl)
 }
 
 void dlist_dispose(struct node *l)
-	//@ requires dlist(l, _);
+	//@ requires clist(l);
 	//@ ensures true;
 {
 	struct node *n = l;
 	while (n != 0)
-		//@ requires dlist(n);
+		//@ requires clist(n);
 		//@ ensures  true;
 	{
 		struct node *next = n->next;
@@ -101,12 +120,12 @@ void dlist_dispose(struct node *l)
 // except that it uses a loop invariant
 // instead of a loop specification.
 void dlist_dispose2(struct node *l)
-	//@ requires dlist(l, _);
+	//@ requires clist(l);
 	//@ ensures true;
 {
 	struct node *n = l;
 	while (n != 0)
-		//@ invariant dlist(n);
+		//@ invariant clist(n);
 	{
 		struct node *next = n->next;
 		free(n);
