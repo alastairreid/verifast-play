@@ -1,5 +1,5 @@
 /****************************************************************
- * Doubly linked circular list
+ * Doubly linked acyclic list
  *
  * Copyright Alastair Reid 2020
  * SPDX-Licence-Identifier: BSD-3-Clause
@@ -8,36 +8,91 @@
 #include "stdlib.h"
 #include "dlist.h"
 
-struct node *insert_after(int x, struct node *xs)
-	//@ requires clist(xs);
-	//@ ensures clist(result);
+void init(struct dllist *l)
+	//@ requires l->head |-> _ &*& l->tail |-> _;
+	//@ ensures  dll(l);
 {
+	l->head = 0;
+	l->tail = 0;
+	//@ close linked(0, nnil, nnil, 0);
+	//@ close dll(l);
+}
+
+#if 0
+void insert_at_head(int x, struct dllist *l)
+	//@ requires dll(l);
+	//@ ensures  dll(l);
+{
+	//@ open dll(l);
+	// the following assertion is just to get the values of ns and ps
+	//@ assert l->head |-> ?h &*& l->tail |-> ?t &*& list(h,?ns,?ps) &*& linked(t, ns, ps, 0);
 	struct node *i = malloc(sizeof(struct node));
 	if (i == 0) { abort(); }
 	i->data = x;
-
-	//@ open clist(xs);
-	if (xs) {
-		struct node *n = xs->next;
-		//@ struct node *p = xs->prev;
-		//@ open dlist(n,xs,xs,p);
-		i->next = n;
-		i->prev = xs;
-		xs->next = i;
-		n->prev = i;
-		//@ close dlist(n,i,xs,xs->prev);
-		//@ close dlist(i,xs,i,xs);
-		//@ close dlist(xs,n==xs ? i : p,i,xs);
-		//@ join_dlist(n,i,xs,n==xs ? i : p,i,xs);
+	i->next = 0;
+	i->prev = l->head;
+	if (l->tail == 0) {
+		//@ open  list(h, ns, ps); // open and close list(h,_,_);
+		//@ close list(h, ns, ps);
+		//@ assert ns == nnil && ps == nnil;
+		//@ assert h == 0;
+		//@ open linked(t, ns, ps, 0);
+		//@ close list(i, ncons(i,nnil), ncons(0,nnil));
+		//@ close linked(i, nnil, nnil, i);
+		//@ close linked(i, ncons(i,nnil), ncons(0,nnil), 0);
+		l->tail = i;
 	} else {
-		i->next = i;
-		i->prev = i;
-		//@ close dlist(i,i,i,i);
+		//@ open  list(h, ns, ps); // open and close list(h,_,_);
+		//@ close list(h, ns, ps);
+		//@ open  linked(t,ns,ps,0);
+		//@ close linked(t,ns,ps,0);
+		//
+		//snoc lines are going to require induction to prove
+		//@ assert ns == snoc(?ns2,0);
+		//@ close linked(t, snoc(snoc(ns2,i),0), snoc(ps,i), 0);
+		l->head->next = i;
+		//@ close list(h, ncons(h,ns), ncons(0,ncons(h,ps2)));
 	}
-	return i;
-	//@ close clist(i);
+	l->head = i;
+	//@ close dll(l);
 }
+#endif
 
+#if 1
+void insert_at_tail(int x, struct dllist *l)
+	//@ requires dll(l);
+	//@ ensures  dll(l);
+{
+	//@ open dll(l);
+	// the following assertion is just to get the values of ns and ps
+	//@ assert l->head |-> ?h &*& l->tail |-> ?t &*& list(h,?ns,?ps) &*& linked(t, ns, ps, 0);
+	struct node *i = malloc(sizeof(struct node));
+	if (i == 0) { abort(); }
+	i->data = x;
+	i->next = l->tail;
+	i->prev = 0;
+	if (l->head == 0) {
+		l->head = i;
+		//@ open list(h, ns, ps);
+		//@ open linked(t, ns, ps, 0);
+		//@ assert ns == nnil;
+		//@ assert ps == nnil;
+		//@ close linked(i, nnil, nnil, i);
+		//@ close linked(i, ncons(i,nnil), ncons(0,nnil), 0);
+	} else {
+		//@ open list(h, ns, ps);
+		//@ assert ps == ncons(_,?ps2);
+		//
+		//next line is going to require induction to prove
+		//@ close linked(i, ncons(i,ns), ncons(0,ps), 0);
+		//@ close list(h, ncons(i,ns), ncons(0,ncons(i,ps2)));
+	}
+	l->tail = i;
+	//@ close dll(l);
+}
+#endif
+
+#if 0
 struct node *insert_before(int x, struct node *xs)
 	//@ requires clist(xs);
 	//@ ensures clist(result);
@@ -132,6 +187,7 @@ void dlist_dispose2(struct node *l)
 		n = next;
 	}
 }
+#endif
 
 /****************************************************************
  * End
